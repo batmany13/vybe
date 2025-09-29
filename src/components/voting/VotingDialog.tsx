@@ -49,6 +49,7 @@ import { Loader2, Edit3, Save, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { updateDeal } from '@/client-lib/api-client';
+import { TextWithLinks } from '@/client-lib/link-parser';
 
 
 
@@ -635,7 +636,9 @@ export function VotingDialog({ deal, open, onOpenChange }: VotingDialogProps) {
                             {founderNotes.map((note, index) => (
                               <div key={index} className="p-2 bg-muted/50 rounded text-xs">
                                 <div className="font-medium text-muted-foreground">{note.lpName}:</div>
-                                <div className="italic">"{note.note}"</div>
+                                <div className="italic">
+                                  "<TextWithLinks>{note.note}</TextWithLinks>"
+                                </div>
                               </div>
                             ))}
                           </div>

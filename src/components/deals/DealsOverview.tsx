@@ -60,39 +60,12 @@ interface StageInfo {
 const stageDetails: Record<string, StageInfo> = {
   sourcing: {
     key: 'sourcing',
-    label: 'Sourcing',
+    label: 'Sourcing Pipeline',
     icon: Search,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50 dark:bg-blue-950/30',
     borderColor: 'border-blue-200 dark:border-blue-800',
-    description: 'Companies in our deal sourcing pipeline.'
-  },
-  sourcing_reached_out: {
-    key: 'sourcing_reached_out',
-    label: 'Reached Out',
-    icon: MessageSquare,
-    color: 'text-cyan-600',
-    bgColor: 'bg-cyan-50 dark:bg-cyan-950/30',
-    borderColor: 'border-cyan-200 dark:border-cyan-800',
-    description: 'Companies we have contacted.'
-  },
-  sourcing_meeting_booked: {
-    key: 'sourcing_meeting_booked',
-    label: 'Meeting Booked',
-    icon: Calendar,
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-50 dark:bg-indigo-950/30',
-    borderColor: 'border-indigo-200 dark:border-indigo-800',
-    description: 'Companies with scheduled meetings.'
-  },
-  sourcing_meeting_done_deciding: {
-    key: 'sourcing_meeting_done_deciding',
-    label: 'Meeting Done - Deciding',
-    icon: Clock,
-    color: 'text-violet-600',
-    bgColor: 'bg-violet-50 dark:bg-violet-950/30',
-    borderColor: 'border-violet-200 dark:border-violet-800',
-    description: 'Post-meeting evaluation phase.'
+    description: 'Companies in our deal sourcing pipeline across 4 states: sourcing, reached out, meeting booked, and meeting done - deciding.'
   },
   review: {
     key: 'review',
@@ -232,12 +205,7 @@ export function DealsOverview({ deals }: DealsOverviewProps) {
       result.push({
         key: 'sourcing',
         title: 'Sourcing Pipeline',
-        stages: [
-          stageDetails.sourcing,
-          stageDetails.sourcing_reached_out,
-          stageDetails.sourcing_meeting_booked,
-          stageDetails.sourcing_meeting_done_deciding
-        ],
+        stages: [stageDetails.sourcing],
         totalDeals: sourcingDeals.length,
         isExpanded: expandedSections.has('sourcing')
       });
@@ -293,6 +261,19 @@ export function DealsOverview({ deals }: DealsOverviewProps) {
     // Check if current LP has voted on this deal
     const hasUserVoted = selectedLP && deal.votes?.some(v => v.lp_id === selectedLP.id);
     
+    // Get sourcing stage label for display
+    const getSourcingStageLabel = (stage: string) => {
+      switch (stage) {
+        case 'sourcing': return 'Sourcing';
+        case 'sourcing_reached_out': return 'Reached Out';
+        case 'sourcing_meeting_booked': return 'Meeting Booked';
+        case 'sourcing_meeting_done_deciding': return 'Meeting Done';
+        default: return null;
+      }
+    };
+
+    const sourcingStageLabel = getSourcingStageLabel(deal.stage);
+    
     return (
       <Link key={deal.id} href={`/deals/${deal.id}`} className="block">
         <Card className="group hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer relative">
@@ -312,6 +293,11 @@ export function DealsOverview({ deals }: DealsOverviewProps) {
               </h3>
               <p className="text-sm text-muted-foreground mt-0.5">
                 {deal.industry} • {deal.funding_round}
+                {sourcingStageLabel && (
+                  <span className="ml-2">
+                    • <span className="text-blue-600 font-medium">{sourcingStageLabel}</span>
+                  </span>
+                )}
               </p>
             </div>
           </div>
@@ -526,39 +512,70 @@ export function DealsOverview({ deals }: DealsOverviewProps) {
               {section.isExpanded && (
                 <div className="space-y-6 animate-in slide-in-from-top-2">
                   {section.key === 'sourcing' ? (
-                    // Sourcing (multiple stages)
-                    <div className="space-y-6">
-                      {section.stages.map((stage) => {
-                        const stageDeals = getDealsByStage(stage.key);
-                        return (
-                          <div key={stage.key} className="space-y-3">
-                            <div className={cn(
-                              "flex items-center gap-3 p-3 rounded-lg border",
-                              stage.bgColor,
-                              stage.borderColor
-                            )}>
-                              <stage.icon className={cn("h-4 w-4", stage.color)} />
-                              <div className="flex-1">
-                                <h4 className="font-medium">{stage.label}</h4>
-                                <p className="text-xs text-muted-foreground">{stage.description}</p>
+                    // Sourcing (combined all stages)
+                    (() => {
+                      const stage = section.stages[0];
+                      const sourcingStages = ['sourcing', 'sourcing_reached_out', 'sourcing_meeting_booked', 'sourcing_meeting_done_deciding'];
+                      const allSourcingDeals = getDealsByStages(sourcingStages);
+                      
+                      // Calculate counts for each sourcing stage
+                      const stageCounts = {
+                        sourcing: getDealsByStage('sourcing').length,
+                        sourcing_reached_out: getDealsByStage('sourcing_reached_out').length,
+                        sourcing_meeting_booked: getDealsByStage('sourcing_meeting_booked').length,
+                        sourcing_meeting_done_deciding: getDealsByStage('sourcing_meeting_done_deciding').length
+                      };
+                      
+                      return (
+                        <div className="space-y-3">
+                          <div className={cn(
+                            "flex items-center gap-3 p-3 rounded-lg border",
+                            stage.bgColor,
+                            stage.borderColor
+                          )}>
+                            <stage.icon className={cn("h-4 w-4", stage.color)} />
+                            <div className="flex-1">
+                              <h4 className="font-medium">{stage.label}</h4>
+                              <p className="text-xs text-muted-foreground">{stage.description}</p>
+                              <div className="flex gap-2 mt-2">
+                                {stageCounts.sourcing > 0 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Sourcing: {stageCounts.sourcing}
+                                  </Badge>
+                                )}
+                                {stageCounts.sourcing_reached_out > 0 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Reached Out: {stageCounts.sourcing_reached_out}
+                                  </Badge>
+                                )}
+                                {stageCounts.sourcing_meeting_booked > 0 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Meeting Booked: {stageCounts.sourcing_meeting_booked}
+                                  </Badge>
+                                )}
+                                {stageCounts.sourcing_meeting_done_deciding > 0 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Meeting Done: {stageCounts.sourcing_meeting_done_deciding}
+                                  </Badge>
+                                )}
                               </div>
-                              <Badge variant="secondary" className="ml-auto">
-                                {stageDeals.length}
-                              </Badge>
                             </div>
-                            {stageDeals.length > 0 ? (
-                              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                {stageDeals.map((deal) => renderDealCard(deal))}
-                              </div>
-                            ) : (
-                              <div className="text-center py-4 text-muted-foreground">
-                                <p className="text-sm">No deals in {stage.label.toLowerCase()}</p>
-                              </div>
-                            )}
+                            <Badge variant="secondary" className="ml-auto">
+                              {allSourcingDeals.length}
+                            </Badge>
                           </div>
-                        );
-                      })}
-                    </div>
+                          {allSourcingDeals.length > 0 ? (
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                              {allSourcingDeals.map((deal) => renderDealCard(deal))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-8 text-muted-foreground">
+                              <p className="text-sm">No deals in sourcing pipeline</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()
                   ) : section.key === 'review' ? (
                     // Review (single stage)
                     (() => {

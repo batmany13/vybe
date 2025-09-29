@@ -50,7 +50,8 @@ import {
   PlayCircle,
   Linkedin,
   CalendarCheck,
-  Edit
+  Edit,
+  Share
 } from 'lucide-react';
 import { useDeal, useLimitedPartners, updateDeal, useDealLinks } from '@/client-lib/api-client';
 
@@ -58,10 +59,12 @@ import { VotingDialog } from '@/components/voting/VotingDialog';
 import { SurveyReportButton } from '@/components/deals/SurveyReportButton';
 import { FounderMeetingIndicator } from '@/components/deals/FounderMeetingIndicator';
 import { EditDealDialog } from '@/components/deals/EditDealDialog';
+import { ShareDealDialog } from '@/components/deals/ShareDealDialog';
 import { useSelectedLP } from '@/contexts/SelectedLPContext';
 import Link from 'next/link';
 import { DealWithVotes } from '@/shared/models';
 import { toast } from 'sonner';
+import { TextWithLinks } from '@/client-lib/link-parser';
 
 export default function DealDetailsPage() {
   const [isEditingCloseDate, setIsEditingCloseDate] = useState(false);
@@ -71,6 +74,7 @@ export default function DealDetailsPage() {
 
   const [isVotingDialogOpen, setIsVotingDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   const { data: deal, isLoading, error } = useDeal(dealId);
   const { data: lps = [] } = useLimitedPartners();
@@ -362,14 +366,24 @@ export default function DealDetailsPage() {
 
             <div className="hidden sm:flex gap-2">
               {isPartner && (
-                <Button 
-                  onClick={() => setIsEditDialogOpen(true)} 
-                  className="shadow-lg"
-                  variant="secondary"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Deal
-                </Button>
+                <>
+                  <Button 
+                    onClick={() => setIsEditDialogOpen(true)} 
+                    className="shadow-lg"
+                    variant="secondary"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Deal
+                  </Button>
+                  <Button 
+                    onClick={() => setIsShareDialogOpen(true)} 
+                    className="shadow-lg"
+                    variant="outline"
+                  >
+                    <Share className="h-4 w-4 mr-2" />
+                    Share Deal
+                  </Button>
+                </>
               )}
               {hasCompletedReview ? (
                 <Button 
@@ -436,15 +450,26 @@ export default function DealDetailsPage() {
         {/* Mobile Actions */}
         <div className="sm:hidden mb-4 space-y-2">
           {isPartner && (
-            <Button 
-              onClick={() => setIsEditDialogOpen(true)} 
-              className="w-full shadow-lg" 
-              size="lg"
-              variant="secondary"
-            >
-              <Edit className="h-5 w-5 mr-2" />
-              Edit Deal
-            </Button>
+            <>
+              <Button 
+                onClick={() => setIsEditDialogOpen(true)} 
+                className="w-full shadow-lg" 
+                size="lg"
+                variant="secondary"
+              >
+                <Edit className="h-5 w-5 mr-2" />
+                Edit Deal
+              </Button>
+              <Button 
+                onClick={() => setIsShareDialogOpen(true)} 
+                className="w-full shadow-lg" 
+                size="lg"
+                variant="outline"
+              >
+                <Share className="h-5 w-5 mr-2" />
+                Share Deal
+              </Button>
+            </>
           )}
           {hasCompletedReview ? (
             <Button 
@@ -726,7 +751,9 @@ export default function DealDetailsPage() {
                                 {founderNotes.map((note, index) => (
                                   <div key={index} className="p-2 bg-primary/5 rounded text-xs border">
                                     <div className="font-medium text-primary">{note.lpName}:</div>
-                                    <div className="italic text-muted-foreground">"{note.note}"</div>
+                                    <div className="italic text-muted-foreground">
+                                      "<TextWithLinks>{note.note}</TextWithLinks>"
+                                    </div>
                                   </div>
                                 ))}
                               </div>
@@ -1157,13 +1184,17 @@ export default function DealDetailsPage() {
                               <div className="space-y-1">
                                 {vote.comments && (
                                   <div className="text-sm leading-relaxed">
-                                    <span className="italic text-foreground">"{vote.comments}"</span>
+                                    <span className="italic text-foreground">
+                                      "<TextWithLinks>{vote.comments}</TextWithLinks>"
+                                    </span>
                                   </div>
                                 )}
                                 {vote.additional_notes && (
                                   <div className="text-sm leading-relaxed">
                                     <span className="font-medium text-muted-foreground text-xs">Additional: </span>
-                                    <span className="italic text-foreground">"{vote.additional_notes}"</span>
+                                    <span className="italic text-foreground">
+                                      "<TextWithLinks>{vote.additional_notes}</TextWithLinks>"
+                                    </span>
                                   </div>
                                 )}
                               </div>
@@ -1199,11 +1230,19 @@ export default function DealDetailsPage() {
       />
       
       {isPartner && deal && (
-        <EditDealDialog 
-          deal={deal}
-          open={isEditDialogOpen} 
-          onOpenChange={setIsEditDialogOpen} 
-        />
+        <>
+          <EditDealDialog 
+            deal={deal}
+            open={isEditDialogOpen} 
+            onOpenChange={setIsEditDialogOpen} 
+          />
+          <ShareDealDialog 
+            dealId={deal.id}
+            dealName={deal.company_name}
+            open={isShareDialogOpen} 
+            onOpenChange={setIsShareDialogOpen} 
+          />
+        </>
       )}
     </div>
   );

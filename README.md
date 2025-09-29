@@ -63,6 +63,7 @@ To change the admin password:
 - **Event Management**: Calendar integration and dinner coordination
 - **Quarterly Statistics**: Investment performance tracking and reporting
 - **Founder Outreach**: AI-powered icebreaker generation and Lemlist integration
+- **Deal Sharing**: Secure public sharing of deal information via encrypted links
 
 ### Technical Infrastructure
 - **Database Integration**: Neon PostgreSQL with proper SQL query handling

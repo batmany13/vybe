@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import { type Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
-import { Topbar } from "@/components/Topbar";
+import { ConditionalTopbar } from "@/components/ConditionalTopbar";
 import { SelectedLPProvider } from "@/contexts/SelectedLPContext";
 
 
@@ -36,8 +36,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SelectedLPProvider>
-            <Topbar />
-            <main className="pt-12">{children}</main>
+            <ConditionalTopbar />
+            <main className="conditional-main">{children}</main>
             <Toaster richColors />
           </SelectedLPProvider>
         </ThemeProvider>
