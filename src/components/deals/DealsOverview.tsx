@@ -45,7 +45,7 @@ interface DealsOverviewProps {
   deals: DealWithVotes[];
 }
 
-type SectionKey = 'review' | 'offer' | 'invested';
+type SectionKey = 'sourcing' | 'review' | 'offer' | 'invested';
 
 interface StageInfo {
   key: string;
@@ -58,6 +58,42 @@ interface StageInfo {
 }
 
 const stageDetails: Record<string, StageInfo> = {
+  sourcing: {
+    key: 'sourcing',
+    label: 'Sourcing',
+    icon: Search,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50 dark:bg-blue-950/30',
+    borderColor: 'border-blue-200 dark:border-blue-800',
+    description: 'Companies in our deal sourcing pipeline.'
+  },
+  sourcing_reached_out: {
+    key: 'sourcing_reached_out',
+    label: 'Reached Out',
+    icon: MessageSquare,
+    color: 'text-cyan-600',
+    bgColor: 'bg-cyan-50 dark:bg-cyan-950/30',
+    borderColor: 'border-cyan-200 dark:border-cyan-800',
+    description: 'Companies we have contacted.'
+  },
+  sourcing_meeting_booked: {
+    key: 'sourcing_meeting_booked',
+    label: 'Meeting Booked',
+    icon: Calendar,
+    color: 'text-indigo-600',
+    bgColor: 'bg-indigo-50 dark:bg-indigo-950/30',
+    borderColor: 'border-indigo-200 dark:border-indigo-800',
+    description: 'Companies with scheduled meetings.'
+  },
+  sourcing_meeting_done_deciding: {
+    key: 'sourcing_meeting_done_deciding',
+    label: 'Meeting Done - Deciding',
+    icon: Clock,
+    color: 'text-violet-600',
+    bgColor: 'bg-violet-50 dark:bg-violet-950/30',
+    borderColor: 'border-violet-200 dark:border-violet-800',
+    description: 'Post-meeting evaluation phase.'
+  },
   review: {
     key: 'review',
     label: 'Under Review',
@@ -99,7 +135,7 @@ export function DealsOverview({ deals }: DealsOverviewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [industryFilter, setIndustryFilter] = useState<string>('all');
   const [reviewStatusFilter, setReviewStatusFilter] = useState<string>('all');
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['review']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['sourcing', 'review']));
   const { selectedLP } = useSelectedLP();
 
   const formatCurrency = (amount: number) => {
@@ -185,9 +221,27 @@ export function DealsOverview({ deals }: DealsOverviewProps) {
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   };
 
-  // Organize deals into sections (Review, Offer, Invested)
+  // Organize deals into sections (Sourcing, Review, Offer, Invested)
   const sections = useMemo((): DealSection[] => {
     const result: DealSection[] = [];
+
+    // Sourcing section (includes all 4 sourcing stages)
+    const sourcingStages = ['sourcing', 'sourcing_reached_out', 'sourcing_meeting_booked', 'sourcing_meeting_done_deciding'];
+    const sourcingDeals = filteredDeals.filter(d => sourcingStages.includes(d.stage));
+    if (sourcingDeals.length > 0 || !searchQuery) {
+      result.push({
+        key: 'sourcing',
+        title: 'Sourcing Pipeline',
+        stages: [
+          stageDetails.sourcing,
+          stageDetails.sourcing_reached_out,
+          stageDetails.sourcing_meeting_booked,
+          stageDetails.sourcing_meeting_done_deciding
+        ],
+        totalDeals: sourcingDeals.length,
+        isExpanded: expandedSections.has('sourcing')
+      });
+    }
 
     const reviewDeals = filteredDeals.filter(d => d.stage === 'partner_review');
     if (reviewDeals.length > 0 || !searchQuery) {
@@ -432,12 +486,14 @@ export function DealsOverview({ deals }: DealsOverviewProps) {
                   <div className="flex items-center gap-3">
                     <div className={cn(
                       "p-2 rounded-lg",
+                      section.key === 'sourcing' && "bg-blue-100 dark:bg-blue-900/30",
                       section.key === 'review' && "bg-orange-100 dark:bg-orange-900/30",
                       section.key === 'offer' && "bg-purple-100 dark:bg-purple-900/30",
                       section.key === 'invested' && "bg-green-100 dark:bg-green-900/30",
                     )}>
                       <SectionIcon className={cn(
                         "h-5 w-5",
+                        section.key === 'sourcing' && "text-blue-600",
                         section.key === 'review' && "text-orange-600",
                         section.key === 'offer' && "text-purple-600",
                         section.key === 'invested' && "text-green-600",
@@ -469,7 +525,41 @@ export function DealsOverview({ deals }: DealsOverviewProps) {
               {/* Section Content */}
               {section.isExpanded && (
                 <div className="space-y-6 animate-in slide-in-from-top-2">
-                  {section.key === 'review' ? (
+                  {section.key === 'sourcing' ? (
+                    // Sourcing (multiple stages)
+                    <div className="space-y-6">
+                      {section.stages.map((stage) => {
+                        const stageDeals = getDealsByStage(stage.key);
+                        return (
+                          <div key={stage.key} className="space-y-3">
+                            <div className={cn(
+                              "flex items-center gap-3 p-3 rounded-lg border",
+                              stage.bgColor,
+                              stage.borderColor
+                            )}>
+                              <stage.icon className={cn("h-4 w-4", stage.color)} />
+                              <div className="flex-1">
+                                <h4 className="font-medium">{stage.label}</h4>
+                                <p className="text-xs text-muted-foreground">{stage.description}</p>
+                              </div>
+                              <Badge variant="secondary" className="ml-auto">
+                                {stageDeals.length}
+                              </Badge>
+                            </div>
+                            {stageDeals.length > 0 ? (
+                              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                {stageDeals.map((deal) => renderDealCard(deal))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-4 text-muted-foreground">
+                                <p className="text-sm">No deals in {stage.label.toLowerCase()}</p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : section.key === 'review' ? (
                     // Review (single stage)
                     (() => {
                       const stage = section.stages[0];

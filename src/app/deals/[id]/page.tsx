@@ -253,6 +253,9 @@ export default function DealDetailsPage() {
   // Check if current LP has already voted
   const hasUserVoted = selectedLP && deal.votes?.some(v => v.lp_id === selectedLP.id);
   const userVote = selectedLP && deal.votes?.find(v => v.lp_id === selectedLP.id);
+  
+  // Check if the user has completed their review (not just submitted)
+  const hasCompletedReview = userVote && !userVote.review_status;
 
   const displayCloseDateIso = deal.close_date ?? ((deal.stage === 'signed' || deal.stage === 'signed_and_wired') ? deal.updated_at : undefined);
 
@@ -368,7 +371,7 @@ export default function DealDetailsPage() {
                   Edit Deal
                 </Button>
               )}
-              {hasUserVoted ? (
+              {hasCompletedReview ? (
                 <Button 
                   onClick={() => setIsVotingDialogOpen(true)} 
                   className="shadow-lg"
@@ -380,7 +383,7 @@ export default function DealDetailsPage() {
               ) : (
                 <Button onClick={() => setIsVotingDialogOpen(true)} className="shadow-lg">
                   <VoteIcon className="h-4 w-4 mr-2" />
-                  Review Company
+                  {hasUserVoted ? 'Review Submitted' : 'Review Company'}
                 </Button>
               )}
             </div>
@@ -443,7 +446,7 @@ export default function DealDetailsPage() {
               Edit Deal
             </Button>
           )}
-          {hasUserVoted ? (
+          {hasCompletedReview ? (
             <Button 
               onClick={() => setIsVotingDialogOpen(true)} 
               className="w-full shadow-lg" 
@@ -456,7 +459,7 @@ export default function DealDetailsPage() {
           ) : (
             <Button onClick={() => setIsVotingDialogOpen(true)} className="w-full shadow-lg" size="lg">
               <VoteIcon className="h-5 w-5 mr-2" />
-              Review Company
+              {hasUserVoted ? 'Review Submitted' : 'Review Company'}
             </Button>
           )}
         </div>
