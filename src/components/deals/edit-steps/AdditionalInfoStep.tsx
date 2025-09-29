@@ -61,23 +61,23 @@ export function AdditionalInfoStep({ formData, updateFormData }: AdditionalInfoS
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="why_good_fit_for_cto_fund">Why Good Fit for CTO Fund?</Label>
+            <Label htmlFor="why_good_fit">Why Good Fit for Gandhi Capital?</Label>
             <Textarea
-              id="why_good_fit_for_cto_fund"
-              placeholder="How does this deal align with CTO Fund's thesis? What specific value can CTO Fund LPs provide? Why is this a good fit for our portfolio?"
-              value={formData.why_good_fit_for_cto_fund || ''}
-              onChange={(e) => handleInputChange('why_good_fit_for_cto_fund', e.target.value)}
+              id="why_good_fit"
+              placeholder="How does this deal align with Gandhi Capital's thesis? What specific value can our LPs provide? Why is this a good fit for our portfolio?"
+              value={formData.why_good_fit || ''}
+              onChange={(e) => handleInputChange('why_good_fit', e.target.value)}
               rows={4}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="quang_excited_note">Partner Notes & Excitement</Label>
+            <Label htmlFor="excitement_note">Why We're Excited</Label>
             <Textarea
-              id="quang_excited_note"
-              placeholder="What excites the investment team about this opportunity? Any specific partner notes or insights?"
-              value={formData.quang_excited_note || ''}
-              onChange={(e) => handleInputChange('quang_excited_note', e.target.value)}
+              id="excitement_note"
+              placeholder="What excites the investment team about this opportunity? Any specific notes or insights about why this is compelling?"
+              value={formData.excitement_note || ''}
+              onChange={(e) => handleInputChange('excitement_note', e.target.value)}
               rows={3}
             />
           </div>

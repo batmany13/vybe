@@ -396,7 +396,7 @@ export interface AttioPerson {
   last_name: string;
   full_name: string;
   description: string;
-  quang_excited_note?: string; // Note on why Quang is excited
+  excitement_note?: string; // Note on why we're excited
   email_address: string;
   job_title: string;
   linkedin: string;
@@ -3294,7 +3294,7 @@ export interface Deal {
   
   // Founder story & market insight
   founder_motivation?: string; // Why did you pick this idea? Domain expertise? How do you know people need this?
-  why_good_fit_for_cto_fund?: string; // Why this could be a good fit for Gandhi Capital
+  why_good_fit?: string; // Why this could be a good fit for Gandhi Capital
   
   // Competition & differentiation
   competition_differentiation?: string; // Competitors and what you understand that they don't
@@ -3414,7 +3414,7 @@ export interface Communication {
 }
 
 export interface DealWithVotes extends Deal {
-  quang_excited_note?: string;
+  excitement_note?: string;
   founders?: Founder[];
   votes: Vote[];
   total_votes: number;

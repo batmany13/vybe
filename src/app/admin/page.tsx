@@ -31,6 +31,7 @@ import {
 import { toast } from 'sonner';
 import { generateText, addLeadToLemlistCampaign, useLemlistCampaigns } from '@/client-lib/integrations-client';
 import { useLimitedPartners, useDealsWithVotesAndFounders, useMonthlyUpdates, useVotes, deleteDeal, deleteMonthlyUpdate, useDinners, updateDeal } from '@/client-lib/api-client';
+import { useSelectedLP } from '@/contexts/SelectedLPContext';
 
 import { CreateLPDialog } from '@/components/lps/CreateLPDialog';
 import { EditLPDialog } from '@/components/lps/EditLPDialog';
@@ -73,7 +74,7 @@ export default function AdminPage() {
   const [showEditDeal, setShowEditDeal] = useState(false);
 
   const [showMarkAsPass, setShowMarkAsPass] = useState(false);
-  const [selectedLP, setSelectedLP] = useState<any>(null);
+  const [selectedLPForEdit, setSelectedLPForEdit] = useState<any>(null);
   const [showEditLP, setShowEditLP] = useState(false);
 
   const [selectedUpdate, setSelectedUpdate] = useState<any>(null);
@@ -89,6 +90,9 @@ export default function AdminPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  // Get selected LP context for role-based access
+  const { selectedLP, isLoading: lpLoading } = useSelectedLP();
+
   // Fetch data for stats
   const { data: lps = [] } = useLimitedPartners();
   const { data: deals = [] } = useDealsWithVotesAndFounders();
@@ -96,7 +100,7 @@ export default function AdminPage() {
   const { data: votes = [] } = useVotes();
   const { data: dinners = [] } = useDinners();
 
-  // Check if already authenticated via cookie or bypass in development
+  // Check if already authenticated via cookie, partner access, or bypass in development
   useEffect(() => {
     // Auto-authenticate in development mode
     if (process.env.NODE_ENV === 'development') {
@@ -104,13 +108,25 @@ export default function AdminPage() {
       setIsLoading(false);
       return;
     }
+
+    // Wait for LP context to load
+    if (lpLoading) {
+      return;
+    }
     
-    // In production, check for auth cookie
+    // Auto-authenticate for general partners and venture partners
+    if (selectedLP && (selectedLP.partner_type === 'general_partner' || selectedLP.partner_type === 'venture_partner')) {
+      setIsAuthenticated(true);
+      setIsLoading(false);
+      return;
+    }
+    
+    // For other users, check for auth cookie
     if (hasAuthCookie()) {
       setIsAuthenticated(true);
     }
     setIsLoading(false);
-  }, []);
+  }, [lpLoading, selectedLP]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,7 +187,7 @@ export default function AdminPage() {
   };
 
   const handleEditLP = (lp: any) => {
-    setSelectedLP(lp);
+    setSelectedLPForEdit(lp);
     setShowEditLP(true);
   };
 
@@ -218,7 +234,7 @@ export default function AdminPage() {
       if (deal.company_description_short) contextParts.push(`One-liner: ${deal.company_description_short}`);
       if (deal.description) contextParts.push(`Description: ${deal.description}`);
       if (!deal.description && deal.industry) contextParts.push(`Industry: ${deal.industry}`);
-      if (deal.why_good_fit_for_cto_fund) contextParts.push(`Why fit for Gandhi Capital: ${deal.why_good_fit_for_cto_fund}`);
+      if (deal.why_good_fit) contextParts.push(`Why fit for Gandhi Capital: ${deal.why_good_fit}`);
       if (deal.traction_progress) contextParts.push(`Traction: ${deal.traction_progress}`);
       if (typeof deal.has_revenue === 'boolean') contextParts.push(`Has revenue: ${deal.has_revenue ? 'yes' : 'no'}`);
 
@@ -300,7 +316,7 @@ Task: Write a single, friendly sentence (under 25 words) that clearly mentions h
     }
   };
 
-  if (isLoading) {
+  if (isLoading || lpLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -318,7 +334,10 @@ Task: Write a single, friendly sentence (under 25 words) that clearly mentions h
             </div>
             <CardTitle>Admin Access Required</CardTitle>
             <CardDescription>
-              Please enter the admin password to continue
+              {selectedLP && selectedLP.partner_type === 'limited_partner' 
+                ? 'Limited Partners require a password to access admin features'
+                : 'Please enter the admin password to continue'
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -536,6 +555,39 @@ Task: Write a single, friendly sentence (under 25 words) that clearly mentions h
             </div>
             
             <div className="grid gap-6 max-w-2xl">
+              {/* Access Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Current Access Level</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>User Role:</span>
+                    <span className="font-medium">
+                      {selectedLP?.partner_type === 'general_partner' && 'General Partner (GP)'}
+                      {selectedLP?.partner_type === 'venture_partner' && 'Venture Partner (VP)'}
+                      {selectedLP?.partner_type === 'limited_partner' && 'Limited Partner (LP)'}
+                      {!selectedLP && 'Guest User'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Admin Access:</span>
+                    <span className="font-medium">
+                      {selectedLP?.partner_type === 'general_partner' || selectedLP?.partner_type === 'venture_partner' 
+                        ? 'Automatic (no password required)' 
+                        : 'Password protected'
+                      }
+                    </span>
+                  </div>
+                  {selectedLP && (
+                    <div className="flex justify-between">
+                      <span>Associated LP:</span>
+                      <span className="font-medium">{selectedLP.name}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Password Management */}
               <Card>
                 <CardHeader>
@@ -601,7 +653,7 @@ Task: Write a single, friendly sentence (under 25 words) that clearly mentions h
               {/* Current Configuration */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Current Configuration</CardTitle>
+                  <CardTitle>System Configuration</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -610,7 +662,7 @@ Task: Write a single, friendly sentence (under 25 words) that clearly mentions h
                   </div>
                   <div className="flex justify-between">
                     <span>Auth Method:</span>
-                    <span className="font-medium">Cookie-based (24h)</span>
+                    <span className="font-medium">Role-based + Cookie (24h)</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Password Source:</span>
@@ -624,17 +676,22 @@ Task: Write a single, friendly sentence (under 25 words) that clearly mentions h
               {/* Instructions */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Password Setup Instructions</CardTitle>
+                  <CardTitle>Access Control Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
-                  <p>To set a custom admin password:</p>
-                  <ol className="list-decimal list-inside space-y-1 ml-2">
-                    <li>Set the <code className="bg-muted px-1 rounded">NEXT_PUBLIC_ADMIN_PASSWORD</code> environment variable</li>
-                    <li>Restart your application</li>
-                    <li>The new password will take effect immediately</li>
-                  </ol>
+                  <p><strong>General Partners (GP)</strong> and <strong>Venture Partners (VP)</strong>:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-2 text-muted-foreground">
+                    <li>Automatic admin access without password</li>
+                    <li>Full access to all admin features</li>
+                    <li>Identified via email match with LP records</li>
+                  </ul>
+                  <p className="mt-3"><strong>Limited Partners (LP)</strong> and <strong>Other Users</strong>:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-2 text-muted-foreground">
+                    <li>Require admin password for access</li>
+                    <li>Password authentication is remembered for 24 hours</li>
+                  </ul>
                   <p className="text-muted-foreground mt-3">
-                    If no environment variable is set, the system uses a default password for backwards compatibility.
+                    To update the admin password, modify the <code className="bg-muted px-1 rounded">NEXT_PUBLIC_ADMIN_PASSWORD</code> environment variable and restart the application.
                   </p>
                 </CardContent>
               </Card>
@@ -711,13 +768,13 @@ Task: Write a single, friendly sentence (under 25 words) that clearly mentions h
           />
         ) : null;
       })()}
-      {showEditLP && selectedLP && (
+      {showEditLP && selectedLPForEdit && (
         <EditLPDialog
-          lp={selectedLP}
+          lp={selectedLPForEdit}
           open={showEditLP}
           onOpenChange={(open) => {
             setShowEditLP(open);
-            if (!open) setSelectedLP(null);
+            if (!open) setSelectedLPForEdit(null);
           }}
         />
       )}

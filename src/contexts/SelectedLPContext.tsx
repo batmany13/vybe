@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { LimitedPartner } from '@/shared/models';
 import { authClient } from '@/client-lib/auth-client';
 import { useLimitedPartners } from '@/client-lib/api-client';
@@ -15,11 +16,28 @@ interface SelectedLPContextType {
 const SelectedLPContext = createContext<SelectedLPContextType | undefined>(undefined);
 
 export function SelectedLPProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isPublicRoute = pathname?.startsWith('/public');
+  
   const [selectedLP, setSelectedLPState] = useState<LimitedPartner | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAutoMatched, setIsAutoMatched] = useState(false);
   
-  // Get current user session and LPs data
+  // Skip authentication and API calls for public routes
+  if (isPublicRoute) {
+    return (
+      <SelectedLPContext.Provider value={{ 
+        selectedLP: null, 
+        setSelectedLP: () => {}, 
+        isLoading: false, 
+        isAutoMatched: false 
+      }}>
+        {children}
+      </SelectedLPContext.Provider>
+    );
+  }
+  
+  // Get current user session and LPs data (only for non-public routes)
   const { data: session } = process.env.NODE_ENV === 'production' ? authClient.useSession() :
     { data: {
         user: {

@@ -155,7 +155,7 @@ export function LPDealEvaluationEmailSection({
       const what = (deal.company_description_short || deal.description || '').trim();
       const oneLiner = what ? (what.length > 140 ? what.slice(0, 140) + '…' : what) : '';
       const dealLink = `${baseUrl}/deals/${deal.id}`;
-      const opinion = (deal.quang_excited_note ?? "").trim();
+      const opinion = (deal.excitement_note ?? "").trim();
 
       const subItems: string[] = [];
       if (foundersList) subItems.push(`<li style=\"margin: 4px 0;\">Founders: ${foundersList}</li>`);

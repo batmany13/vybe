@@ -79,8 +79,8 @@ export default function EditDealPage({ params }: EditDealPageProps) {
         // Additional Info
         founder_motivation: deal.founder_motivation || '',
         competition_differentiation: deal.competition_differentiation || '',
-        why_good_fit_for_cto_fund: deal.why_good_fit_for_cto_fund || '',
-        quang_excited_note: deal.quang_excited_note || '',
+        why_good_fit: deal.why_good_fit || '',
+        excitement_note: deal.excitement_note || '',
         survey_deadline: deal.survey_deadline || '',
         contract_link: deal.contract_link || '',
         

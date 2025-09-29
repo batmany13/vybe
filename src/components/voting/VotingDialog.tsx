@@ -544,23 +544,23 @@ export function VotingDialog({ deal, open, onOpenChange }: VotingDialogProps) {
         </CardContent>
       </Card>
 
-      {/* Quang's Excitement */}
-      {deal.quang_excited_note && (
+      {/* Team Excitement */}
+      {deal.excitement_note && (
         <Card className="h-fit border-primary/30 bg-primary/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2 text-primary">
               <Heart className="h-4 w-4" />
-              Quang's excitement
+              Why we're excited
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <p className="text-sm leading-relaxed">{deal.quang_excited_note}</p>
+            <p className="text-sm leading-relaxed">{deal.excitement_note}</p>
           </CardContent>
         </Card>
       )}
 
       {/* Gandhi Capital Fit */}
-      {activeDeal.why_good_fit_for_cto_fund && (
+      {activeDeal.why_good_fit && (
         <Card className="h-fit">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -569,7 +569,7 @@ export function VotingDialog({ deal, open, onOpenChange }: VotingDialogProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            {renderEditableField('why_good_fit_for_cto_fund', activeDeal.why_good_fit_for_cto_fund || '', 'Fit with Gandhi Capital', true)}
+            {renderEditableField('why_good_fit', activeDeal.why_good_fit || '', 'Fit with Gandhi Capital', true)}
           </CardContent>
         </Card>
       )}

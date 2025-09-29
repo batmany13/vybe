@@ -427,7 +427,7 @@ export interface Deal {
   traction_progress?: string;
   user_traction?: string;
   founder_motivation?: string;
-  why_good_fit_for_cto_fund?: string;
+  why_good_fit?: string;
   competition_differentiation?: string;
   raising_amount?: number;
   safe_or_equity?: string;
@@ -502,7 +502,7 @@ export interface Vote {
 }
 
 export interface DealWithVotesAndFounders extends Deal {
-  quang_excited_note?: string;
+  excitement_note?: string;
   founders?: Founder[];
   votes: Vote[]; // Made required to match DealWithVotes from models
   total_votes: number;

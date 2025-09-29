@@ -2,41 +2,30 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-  ExternalLink,
-  Building2,
-  DollarSign,
-  MapPin,
-  Calendar,
-  TrendingUp,
-  Users,
-  Globe,
-  Rocket,
-  Target,
-  Package,
+  AlertTriangle,
+  Lock,
+  XCircle,
   Briefcase,
-  Heart,
-  ChevronRight,
-  Info,
-  FileText,
-  PlayCircle,
-  Linkedin,
-  Lightbulb,
+  Package,
+  Calendar,
+  Target,
   Eye,
   Shield,
   CheckCircle,
-  XCircle,
-  AlertTriangle,
-  Lock
+  ExternalLink,
+  FileText
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { TextWithLinks } from '@/client-lib/link-parser';
+import { 
+  CompanyDetailsSection, 
+  FoundingTeamSection, 
+  InvestmentDetailsCard,
+  PitchDeckEmbed,
+  DemoEmbed
+} from '@/components/deals/DealComponents';
 
 interface PublicDeal {
   id: string;
@@ -58,8 +47,8 @@ interface PublicDeal {
   traction_progress?: string;
   founder_motivation?: string;
   competition_differentiation?: string;
-  why_good_fit_for_cto_fund?: string;
-  quang_excited_note?: string;
+  why_good_fit?: string;
+  excitement_note?: string;
   raising_amount?: number;
   confirmed_amount: number;
   safe_or_equity?: string;
@@ -98,7 +87,12 @@ export default function PublicDealPage() {
         const dealData = await response.json();
         setDeal(dealData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load deal');
+        console.error('Error fetching public deal:', err);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Failed to load deal. Please check your internet connection and try again.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -258,44 +252,64 @@ export default function PublicDealPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Header */}
+      {/* Hero Header - Match private page exactly */}
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
         <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
-          <div className="space-y-3 sm:space-y-2">
-            <div className="flex items-center gap-2 mb-4">
-              <Lock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Shared Deal Information</span>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-              <h1 className="text-2xl sm:text-4xl font-bold tracking-tight">{deal.company_name}</h1>
-              <Badge className={`${getStageColor(deal.stage)} text-white border-0 self-start sm:self-auto`}>
-                {getStageIcon(deal.stage)}
-                <span className="ml-1">{deal.stage.replace('_', ' ')}</span>
-              </Badge>
-            </div>
-            
-            {/* Metadata */}
-            <div className="flex items-center gap-4 text-muted-foreground flex-wrap">
-              <span className="flex items-center gap-1">
-                <Briefcase className="h-4 w-4" />
-                {deal.industry}
-              </span>
-              <span className="flex items-center gap-1">
-                <Package className="h-4 w-4" />
-                {deal.funding_round}
-              </span>
-              <span className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                {formatDate(deal.created_at)}
-              </span>
-            </div>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-4">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Shared Deal Information</span>
+              </div>
+              
+              <div className="space-y-3 sm:space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                  <h1 className="text-2xl sm:text-4xl font-bold tracking-tight">{deal.company_name}</h1>
+                  <Badge className={`${getStageColor(deal.stage)} text-white border-0 self-start sm:self-auto`}>
+                    {getStageIcon(deal.stage)}
+                    <span className="ml-1">{deal.stage.replace('_', ' ')}</span>
+                  </Badge>
+                </div>
+                
+                {/* Desktop: Icon layout for metadata */}
+                <div className="hidden sm:flex items-center gap-4 text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Briefcase className="h-4 w-4" />
+                    {deal.industry}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Package className="h-4 w-4" />
+                    {deal.funding_round}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    {formatDate(deal.created_at)}
+                  </span>
+                </div>
 
-            {deal.company_description_short && (
-              <p className="text-sm sm:text-lg text-muted-foreground max-w-3xl mt-3">
-                {deal.company_description_short}
-              </p>
-            )}
+                {/* Mobile: Row layout for metadata */}
+                <div className="flex flex-col gap-2 sm:hidden">
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <span className="text-sm text-muted-foreground">Industry</span>
+                    <span className="text-sm font-medium">{deal.industry}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <span className="text-sm text-muted-foreground">Round</span>
+                    <span className="text-sm font-medium">{deal.funding_round}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <span className="text-sm text-muted-foreground">Date</span>
+                    <span className="text-sm font-medium">{formatDate(deal.created_at)}</span>
+                  </div>
+                </div>
+
+                {deal.company_description_short && (
+                  <p className="text-sm sm:text-lg text-muted-foreground max-w-3xl mt-3">
+                    {deal.company_description_short}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -304,353 +318,37 @@ export default function PublicDealPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Company Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  Company Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {deal.description && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">Overview</h4>
-                    <p className="text-sm leading-relaxed">
-                      <TextWithLinks>{deal.description}</TextWithLinks>
-                    </p>
-                  </div>
-                )}
+            {/* Company Details using shared component */}
+            <CompanyDetailsSection deal={deal} isPublic />
 
-                {deal.quang_excited_note && (
-                  <div className="space-y-2 p-3 rounded-lg bg-primary/5 border">
-                    <h4 className="text-sm font-medium text-primary flex items-center gap-2">
-                      <Heart className="h-4 w-4" />
-                      Why we're excited
-                    </h4>
-                    <p className="text-sm leading-relaxed">
-                      <TextWithLinks>{deal.quang_excited_note}</TextWithLinks>
-                    </p>
-                  </div>
-                )}
+            {/* Founding Team using shared component */}
+            <FoundingTeamSection 
+              founders={deal.founders}
+              foundersLocation={deal.founders_location}
+              companyBaseLocation={deal.company_base_location}
+              isPublic
+            />
 
-                {deal.why_good_fit_for_cto_fund && (
-                  <div className="space-y-2 p-3 rounded-lg bg-muted/50 border">
-                    <h4 className="text-sm font-medium flex items-center gap-2">
-                      <Target className="h-4 w-4 text-muted-foreground" />
-                      Investment Fit
-                    </h4>
-                    <p className="text-sm leading-relaxed">
-                      <TextWithLinks>{deal.why_good_fit_for_cto_fund}</TextWithLinks>
-                    </p>
-                  </div>
-                )}
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  {deal.company_url && (
-                    <a 
-                      href={deal.company_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
-                    >
-                      <Globe className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Website</p>
-                        <p className="text-xs text-muted-foreground truncate">{deal.company_url}</p>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                    </a>
-                  )}
-                  
-                  {deal.pitch_deck_url && (
-                    <a 
-                      href={deal.pitch_deck_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
-                    >
-                      <FileText className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Pitch Deck</p>
-                        <p className="text-xs text-muted-foreground">View presentation</p>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                    </a>
-                  )}
-                </div>
-
-                {/* Traction Progress */}
-                {(deal.working_duration || deal.traction_progress || deal.user_traction) && (
-                  <>
-                    <Separator />
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        <Rocket className="h-4 w-4" />
-                        Traction & Progress
-                      </h4>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        {deal.working_duration && (
-                          <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground">Working on this</p>
-                            <p className="text-sm font-medium">
-                              <TextWithLinks>{deal.working_duration}</TextWithLinks>
-                            </p>
-                          </div>
-                        )}
-                        {deal.user_traction && (
-                          <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground">User traction</p>
-                            <p className="text-sm font-medium">
-                              <TextWithLinks>{deal.user_traction}</TextWithLinks>
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Motivation & Competition */}
-                {(deal.founder_motivation || deal.competition_differentiation) && (
-                  <>
-                    <Separator />
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        <Lightbulb className="h-4 w-4" />
-                        Vision & Market
-                      </h4>
-                      {deal.founder_motivation && (
-                        <div className="space-y-2">
-                          <p className="text-xs text-muted-foreground">Why this idea?</p>
-                          <p className="text-sm leading-relaxed">
-                            <TextWithLinks>{deal.founder_motivation}</TextWithLinks>
-                          </p>
-                        </div>
-                      )}
-                      {deal.competition_differentiation && (
-                        <div className="space-y-2">
-                          <p className="text-xs text-muted-foreground">Competitive advantage</p>
-                          <p className="text-sm leading-relaxed">
-                            <TextWithLinks>{deal.competition_differentiation}</TextWithLinks>
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Founding Team */}
-            {deal.founders && deal.founders.length > 0 && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-primary" />
-                    Founding Team
-                  </CardTitle>
-                  {(deal.founders_location || deal.company_base_location) && (
-                    <CardDescription className="flex items-center gap-4 mt-2">
-                      {deal.founders_location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          Currently in {deal.founders_location}
-                        </span>
-                      )}
-                      {deal.company_base_location && deal.company_base_location !== deal.founders_location && (
-                        <span className="flex items-center gap-1">
-                          <ChevronRight className="h-3 w-3" />
-                          Moving to {deal.company_base_location}
-                        </span>
-                      )}
-                    </CardDescription>
-                  )}
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {deal.founders.map((founder) => (
-                      <div key={founder.id} className="flex items-start gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                        <Avatar className="h-14 w-14 border-2 border-primary/20">
-                          <AvatarImage src={founder.avatar_url || undefined} />
-                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                            {founder.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-3">
-                            <h4 className="font-semibold text-lg">{founder.name}</h4>
-                            {founder.linkedin_url && (
-                              <a 
-                                href={founder.linkedin_url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-muted-foreground hover:text-primary transition-colors"
-                                title="View LinkedIn"
-                              >
-                                <Linkedin className="h-4 w-4" />
-                              </a>
-                            )}
-                          </div>
-                          {founder.bio && (
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              <TextWithLinks>{founder.bio}</TextWithLinks>
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Pitch Deck Embed */}
+            {/* Pitch Deck Embed using shared component - exactly like private page */}
             {deal.pitch_deck_url && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-primary" />
-                    Pitch Deck
-                  </CardTitle>
-                  <CardDescription>
-                    View the presentation directly here or{' '}
-                    <a href={deal.pitch_deck_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                      open in new tab
-                    </a>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <div className="w-full h-[600px] overflow-hidden rounded-md border bg-gray-100 dark:bg-gray-900">
-                    <iframe
-                      src={deal.pitch_deck_url}
-                      title="Pitch Deck"
-                      className="w-full h-full"
-                      frameBorder="0"
-                      allowFullScreen
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <PitchDeckEmbed pitchDeckUrl={deal.pitch_deck_url} />
             )}
 
-            {/* Product Demo Embed */}
+            {/* Product Demo Embed using shared component */}
             {demoEmbed && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-                  <CardTitle className="flex items-center gap-2">
-                    <PlayCircle className="h-5 w-5 text-primary" />
-                    Product Demo
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  {demoEmbed.kind === 'iframe' ? (
-                    <div className="aspect-video w-full overflow-hidden rounded-md border bg-black">
-                      <iframe
-                        src={demoEmbed.src}
-                        title={demoEmbed.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                        className="w-full h-full"
-                      />
-                    </div>
-                  ) : (
-                    <video
-                      src={demoEmbed.src}
-                      controls
-                      className="w-full rounded-md border bg-black"
-                    />
-                  )}
-                </CardContent>
-              </Card>
+              <DemoEmbed demoEmbed={demoEmbed} />
             )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Investment Details */}
-            <Card className="overflow-hidden border-0 shadow-xl">
-              <CardHeader className="bg-gradient-to-br from-primary/10 to-primary/5">
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-primary" />
-                  Investment Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-4">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Investment size</p>
-                  <p className="text-3xl font-bold text-primary">{formatCurrency(deal.deal_size)}</p>
-                </div>
-                
-                {deal.valuation && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Valuation</p>
-                    <p className="text-xl font-semibold">{formatCurrency(deal.valuation)}</p>
-                  </div>
-                )}
-
-                <Separator />
-                
-                {/* Funding Progress */}
-                {deal.raising_amount && (
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">Raising</p>
-                      <p className="text-lg font-semibold">{formatCurrency(deal.raising_amount)}</p>
-                    </div>
-                    
-                    {deal.confirmed_amount > 0 && (
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Confirmed</p>
-                        <p className="text-lg font-semibold text-green-600">{formatCurrency(deal.confirmed_amount)}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {deal.safe_or_equity && (
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Structure</span>
-                    <Badge variant="outline" className="font-medium">
-                      {deal.safe_or_equity}
-                    </Badge>
-                  </div>
-                )}
-                
-                {deal.has_revenue && deal.revenue_amount && (
-                  <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Revenue</span>
-                    <span className="text-sm font-semibold text-green-600">{formatCurrency(deal.revenue_amount)}</span>
-                  </div>
-                )}
-
-                {(deal.lead_investor || (deal.co_investors && deal.co_investors.length > 0)) && (
-                  <>
-                    <Separator />
-                    <div className="space-y-3">
-                      {deal.lead_investor && (
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1">Lead Investor</p>
-                          <p className="text-sm font-medium">{deal.lead_investor}</p>
-                        </div>
-                      )}
-                      {deal.co_investors && deal.co_investors.length > 0 && (
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-2">Co-Investors</p>
-                          <div className="flex flex-wrap gap-1">
-                            {deal.co_investors.map((investor, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {investor}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            {/* Investment Details using shared component */}
+            <InvestmentDetailsCard 
+              deal={deal}
+              formatCurrency={formatCurrency}
+              formatDate={formatDate}
+              isPublic
+            />
 
             {/* Powered by */}
             <Card className="bg-muted/30">

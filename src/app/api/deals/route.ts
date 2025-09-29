@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
     const dealResult = await sql`
       INSERT INTO deals (
         company_name, company_url, company_description_short, industry, stage,
-        deal_size, valuation, description, quang_excited_note, why_good_fit_for_cto_fund, pitch_deck_url, website_url,
+        deal_size, valuation, description, excitement_note, why_good_fit, pitch_deck_url, website_url,
         funding_round, status, survey_deadline, created_by, founders_location, company_base_location,
         demo_url, working_duration, has_revenue, revenue_amount,
         traction_progress, user_traction, founder_motivation, competition_differentiation,
@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
       ) VALUES (
         ${data.company_name}, ${data.company_url || null}, ${data.company_description_short || null},
         ${data.industry}, ${data.stage || 'sourcing'}, ${data.deal_size},
-        ${data.valuation || null}, ${data.description}, ${data.quang_excited_note || null}, ${data.why_good_fit_for_cto_fund || null}, ${data.pitch_deck_url || null},
+        ${data.valuation || null}, ${data.description}, ${data.excitement_note || null}, ${data.why_good_fit || null}, ${data.pitch_deck_url || null},
         ${data.website_url || null}, ${data.funding_round}, ${data.status || 'active'},
         ${data.survey_deadline ? new Date(data.survey_deadline).toISOString().split('T')[0] : null}, ${data.created_by}, ${data.founders_location || null}, ${data.company_base_location || null},
         ${data.demo_url || null}, ${data.working_duration || null},
