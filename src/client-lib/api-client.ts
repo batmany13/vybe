@@ -427,7 +427,7 @@ export interface Deal {
   traction_progress?: string;
   user_traction?: string;
   founder_motivation?: string;
-  why_good_fit_for_cto_fund?: string;
+  why_good_fit?: string;
   competition_differentiation?: string;
   raising_amount?: number;
   safe_or_equity?: string;
@@ -502,7 +502,7 @@ export interface Vote {
 }
 
 export interface DealWithVotesAndFounders extends Deal {
-  quang_excited_note?: string;
+  excitement_note?: string;
   founders?: Founder[];
   votes: Vote[]; // Made required to match DealWithVotes from models
   total_votes: number;
@@ -863,4 +863,45 @@ export async function deleteMessage(channelId: string, messageId: string) {
     console.error("Error deleting message:", error);
     throw error;
   }
+}
+
+// Deal sharing functions
+export interface DealShare {
+  id: number;
+  deal_id: string;
+  share_key: string;
+  created_by: string;
+  created_at: string;
+  expires_at: string | null;
+  is_active: boolean;
+  view_count: number;
+  last_viewed_at: string | null;
+}
+
+export function useDealShares(dealId: string) {
+  return useSWR<DealShare[]>(dealId ? `/deals/${dealId}/share` : null, fetcher);
+}
+
+export async function createDealShare(dealId: string, data: { createdBy: string; expiresInDays?: number }) {
+  try {
+    const response = await apiClient.post(`/deals/${dealId}/share`, data);
+    await mutate(`/deals/${dealId}/share`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function revokeDealShare(dealId: string, shareId: string) {
+  try {
+    await apiClient.delete(`/deals/${dealId}/share/${shareId}`);
+    await mutate(`/deals/${dealId}/share`);
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getPublicDeal(shareKey: string) {
+  const response = await apiClient.get(`/public/deals/${shareKey}`);
+  return response.data;
 }

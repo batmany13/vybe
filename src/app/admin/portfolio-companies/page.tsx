@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDealsWithVotesAndFounders, useLimitedPartners, useMonthlyUpdates, useVotes } from '@/client-lib/api-client';
+import { useSelectedLP } from '@/contexts/SelectedLPContext';
 import { formatDistanceToNow, format } from 'date-fns';
 
 type Section = 'overview' | 'portfolio' | 'deals' | 'lps' | 'updates' | 'surveys' | 'events' | 'founder-outreach' | 'lp-deal-email' | 'meetings' | 'quarterly-stats' | 'admin-settings';
@@ -73,7 +74,10 @@ export default function PortfolioCompaniesPage() {
   // Filter for portfolio companies (signed and signed_and_wired stages)
   const portfolioCompanies = deals.filter(d => d.stage === 'signed' || d.stage === 'signed_and_wired');
 
-  // Check if already authenticated via cookie or bypass in development
+  // Get current user context
+  const { selectedLP, isLoading: lpLoading } = useSelectedLP();
+
+  // Check if already authenticated via cookie, partner access, or bypass in development
   useEffect(() => {
     // Auto-authenticate in development mode
     if (process.env.NODE_ENV === 'development') {
@@ -81,13 +85,25 @@ export default function PortfolioCompaniesPage() {
       setIsLoading(false);
       return;
     }
+
+    // Wait for LP context to load
+    if (lpLoading) {
+      return;
+    }
     
-    // In production, check for auth cookie
+    // Auto-authenticate for general partners and venture partners
+    if (selectedLP && (selectedLP.partner_type === 'general_partner' || selectedLP.partner_type === 'venture_partner')) {
+      setIsAuthenticated(true);
+      setIsLoading(false);
+      return;
+    }
+    
+    // For other users, check for auth cookie
     if (hasAuthCookie()) {
       setIsAuthenticated(true);
     }
     setIsLoading(false);
-  }, []);
+  }, [lpLoading, selectedLP]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();

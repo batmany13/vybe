@@ -19,10 +19,19 @@ The system emphasizes automation, data-driven decision making, and seamless comm
 
 ### Current Setup
 
-The admin panel uses a secure password-based authentication system with the following features:
+The admin panel uses a role-based authentication system with the following tiers:
 
+#### Automatic Admin Access (No Password Required)
+- **General Partners (GP)**: Full admin access based on email match with LP records
+- **Venture Partners (VP)**: Full admin access based on email match with LP records
+
+#### Password-Required Access
+- **Limited Partners (LP)**: Must enter admin password to access admin features
+- **Guest Users**: Must enter admin password to access admin features
+
+#### Configuration
 - **Password Storage**: Configurable via environment variable `NEXT_PUBLIC_ADMIN_PASSWORD`
-- **Session Management**: 24-hour cookie-based authentication
+- **Session Management**: 24-hour cookie-based authentication for password-authenticated users
 - **Development Mode**: Auto-authentication in development environment
 - **Default Password**: `gandhicapital2024` (when no environment variable is set)
 
@@ -42,6 +51,8 @@ To change the admin password:
 
 ### Security Features
 
+- **Role-based Access**: General Partners and Venture Partners bypass password authentication
+- **Limited Partner Protection**: Limited Partners must enter admin password to access admin functions
 - Passwords must be at least 8 characters long
 - Authentication is remembered for 24 hours per device
 - All admin pages use the same unified authentication system
@@ -63,6 +74,7 @@ To change the admin password:
 - **Event Management**: Calendar integration and dinner coordination
 - **Quarterly Statistics**: Investment performance tracking and reporting
 - **Founder Outreach**: AI-powered icebreaker generation and Lemlist integration
+- **Deal Sharing**: Secure public sharing of deal information via encrypted links
 
 ### Technical Infrastructure
 - **Database Integration**: Neon PostgreSQL with proper SQL query handling
@@ -70,6 +82,15 @@ To change the admin password:
 - **AI Integration**: OpenAI-powered content generation
 - **Export Functionality**: CSV exports for portfolio and LP data
 - **Responsive Design**: Mobile-friendly admin interface
+
+### Recent Updates
+- **Field Generalization**: Renamed database fields and UI references for better generalization:
+  - `quang_excited_note` → `excitement_note` 
+  - `why_good_fit_for_cto_fund` → `why_good_fit`
+  - All UI text updated from "Why Quang is excited" to "Why we're excited"
+- **Code Refactoring**: Created shared components for deal displays to reduce code duplication between public and private views
+- **Admin Authentication Enhancement**: Added role-based access where General Partners and Venture Partners get automatic admin access without requiring a password
+- **Public Deal Sharing Fix**: Fixed issue where public deal sharing pages were inaccessible in private browsing mode or for non-authenticated users by optimizing the authentication context for public routes
 
 ## Architecture and Technical Decisions
 

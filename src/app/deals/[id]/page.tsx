@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+  import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/client-lib/utils';
@@ -50,7 +50,8 @@ import {
   PlayCircle,
   Linkedin,
   CalendarCheck,
-  Edit
+  Edit,
+  Share
 } from 'lucide-react';
 import { useDeal, useLimitedPartners, updateDeal, useDealLinks } from '@/client-lib/api-client';
 
@@ -58,10 +59,19 @@ import { VotingDialog } from '@/components/voting/VotingDialog';
 import { SurveyReportButton } from '@/components/deals/SurveyReportButton';
 import { FounderMeetingIndicator } from '@/components/deals/FounderMeetingIndicator';
 import { EditDealDialog } from '@/components/deals/EditDealDialog';
+import { ShareDealDialog } from '@/components/deals/ShareDealDialog';
+import { 
+  CompanyDetailsSection, 
+  FoundingTeamSection, 
+  InvestmentDetailsCard,
+  PitchDeckEmbed,
+  DemoEmbed
+} from '@/components/deals/DealComponents';
 import { useSelectedLP } from '@/contexts/SelectedLPContext';
 import Link from 'next/link';
 import { DealWithVotes } from '@/shared/models';
 import { toast } from 'sonner';
+import { TextWithLinks } from '@/client-lib/link-parser';
 
 export default function DealDetailsPage() {
   const [isEditingCloseDate, setIsEditingCloseDate] = useState(false);
@@ -71,6 +81,7 @@ export default function DealDetailsPage() {
 
   const [isVotingDialogOpen, setIsVotingDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   const { data: deal, isLoading, error } = useDeal(dealId);
   const { data: lps = [] } = useLimitedPartners();
@@ -362,14 +373,24 @@ export default function DealDetailsPage() {
 
             <div className="hidden sm:flex gap-2">
               {isPartner && (
-                <Button 
-                  onClick={() => setIsEditDialogOpen(true)} 
-                  className="shadow-lg"
-                  variant="secondary"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Deal
-                </Button>
+                <>
+                  <Button 
+                    onClick={() => setIsEditDialogOpen(true)} 
+                    className="shadow-lg"
+                    variant="secondary"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Deal
+                  </Button>
+                  <Button 
+                    onClick={() => setIsShareDialogOpen(true)} 
+                    className="shadow-lg"
+                    variant="outline"
+                  >
+                    <Share className="h-4 w-4 mr-2" />
+                    Share Deal
+                  </Button>
+                </>
               )}
               {hasCompletedReview ? (
                 <Button 
@@ -436,15 +457,26 @@ export default function DealDetailsPage() {
         {/* Mobile Actions */}
         <div className="sm:hidden mb-4 space-y-2">
           {isPartner && (
-            <Button 
-              onClick={() => setIsEditDialogOpen(true)} 
-              className="w-full shadow-lg" 
-              size="lg"
-              variant="secondary"
-            >
-              <Edit className="h-5 w-5 mr-2" />
-              Edit Deal
-            </Button>
+            <>
+              <Button 
+                onClick={() => setIsEditDialogOpen(true)} 
+                className="w-full shadow-lg" 
+                size="lg"
+                variant="secondary"
+              >
+                <Edit className="h-5 w-5 mr-2" />
+                Edit Deal
+              </Button>
+              <Button 
+                onClick={() => setIsShareDialogOpen(true)} 
+                className="w-full shadow-lg" 
+                size="lg"
+                variant="outline"
+              >
+                <Share className="h-5 w-5 mr-2" />
+                Share Deal
+              </Button>
+            </>
           )}
           {hasCompletedReview ? (
             <Button 
@@ -492,408 +524,45 @@ export default function DealDetailsPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* 1) Company Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  Company Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {deal.description && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">Overview</h4>
-                    <p className="text-sm leading-relaxed">{deal.description}</p>
-                  </div>
-                )}
+            {/* Company Details using shared component */}
+            <CompanyDetailsSection deal={deal} dealLinks={dealLinks} />
 
-                {deal.quang_excited_note && (
-                  <div className="space-y-2 p-3 rounded-lg bg-primary/5 border">
-                    <h4 className="text-sm font-medium text-primary flex items-center gap-2">
-                      <Heart className="h-4 w-4" />
-                      Why Quang is excited
-                    </h4>
-                    <p className="text-sm leading-relaxed">{deal.quang_excited_note}</p>
-                  </div>
-                )}
-
-                {deal.why_good_fit_for_cto_fund && (
-                  <div className="space-y-2 p-3 rounded-lg bg-muted/50 border">
-                    <h4 className="text-sm font-medium flex items-center gap-2">
-                      <Target className="h-4 w-4 text-muted-foreground" />
-                      Why this is a fit for Gandhi Capital
-                    </h4>
-                    <p className="text-sm leading-relaxed">{deal.why_good_fit_for_cto_fund}</p>
-                  </div>
-                )}
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  {deal.company_url && (
-                    <a 
-                      href={deal.company_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
-                    >
-                      <Globe className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Website</p>
-                        <p className="text-xs text-muted-foreground truncate">{deal.company_url}</p>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                    </a>
-                  )}
+            {/* Founding Team using shared component */}
+            <FoundingTeamSection 
+              founders={founders}
+              foundersLocation={deal.founders_location}
+              companyBaseLocation={deal.company_base_location}
+              founderNotes={(deal.votes || [])
+                .map(vote => {
+                  const lp = lps.find(l => l.id === vote.lp_id);
+                  const voteWithFounderNotes = vote as any;
+                  if (!voteWithFounderNotes.founder_specific_notes || !lp) return null;
                   
-                  {deal.pitch_deck_url && (
-                    <a 
-                      href={deal.pitch_deck_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
-                    >
-                      <FileText className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Pitch Deck</p>
-                        <p className="text-xs text-muted-foreground">View presentation</p>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                    </a>
-                  )}
+                  try {
+                    const founderSpecificNotes = JSON.parse(voteWithFounderNotes.founder_specific_notes);
+                    return Object.entries(founderSpecificNotes)
+                      .filter(([_, note]) => note && (note as string).trim())
+                      .map(([founderId, note]) => ({ 
+                        lpName: lp.name, 
+                        note: (note as string).trim(), 
+                        founderId 
+                      }));
+                  } catch (e) {
+                    return null;
+                  }
+                })
+                .filter(Boolean)
+                .flat()}
+            />
 
-                  {/* Additional Links from Partners */}
-                  {dealLinks && dealLinks.length > 0 && dealLinks.map((link) => (
-                    <a 
-                      key={link.id}
-                      href={link.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
-                    >
-                      <LinkIcon className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{link.title}</p>
-                        <p className="text-xs text-muted-foreground">Shared by partner</p>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                    </a>
-                  ))}
-                </div>
-
-                {/* Traction Progress */}
-                {(deal.working_duration || deal.traction_progress || deal.user_traction) && (
-                  <>
-                    <Separator />
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        <Rocket className="h-4 w-4" />
-                        Traction & Progress
-                      </h4>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        {deal.working_duration && (
-                          <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground">Working on this</p>
-                            <p className="text-sm font-medium">{deal.working_duration}</p>
-                          </div>
-                        )}
-
-
-                        {deal.user_traction && (
-                          <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground">User traction</p>
-                            <p className="text-sm font-medium">{deal.user_traction}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Motivation & Competition */}
-                {(deal.founder_motivation || deal.competition_differentiation) && (
-                  <>
-                    <Separator />
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                        <Lightbulb className="h-4 w-4" />
-                        Vision & Market
-                      </h4>
-                      {deal.founder_motivation && (
-                        <div className="space-y-2">
-                          <p className="text-xs text-muted-foreground">Why this idea?</p>
-                          <p className="text-sm leading-relaxed">{deal.founder_motivation}</p>
-                        </div>
-                      )}
-                      {deal.competition_differentiation && (
-                        <div className="space-y-2">
-                          <p className="text-xs text-muted-foreground">Competitive advantage</p>
-                          <p className="text-sm leading-relaxed">{deal.competition_differentiation}</p>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* 2) Founding Team (side by side) */}
-            {founders.length > 0 && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-primary" />
-                    Founding Team
-                  </CardTitle>
-                  {(deal.founders_location || deal.company_base_location) && (
-                    <CardDescription className="flex items-center gap-4 mt-2">
-                      {deal.founders_location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          Currently in {deal.founders_location}
-                        </span>
-                      )}
-                      {deal.company_base_location && deal.company_base_location !== deal.founders_location && (
-                        <span className="flex items-center gap-1">
-                          <ChevronRight className="h-3 w-3" />
-                          Moving to {deal.company_base_location}
-                        </span>
-                      )}
-                    </CardDescription>
-                  )}
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {founders.map((founder) => {
-                      // Get partner notes for this founder
-                      const founderNotes = (deal.votes || [])
-                        .map(vote => {
-                          const lp = lps.find(l => l.id === vote.lp_id);
-                          const voteWithFounderNotes = vote as any; // Type assertion for founder_specific_notes
-                          if (!voteWithFounderNotes.founder_specific_notes || !lp) return null;
-                          
-                          try {
-                            const founderSpecificNotes = JSON.parse(voteWithFounderNotes.founder_specific_notes);
-                            const note = founderSpecificNotes[founder.id];
-                            return note && note.trim() ? { lpName: lp.name, note: note.trim() } : null;
-                          } catch (e) {
-                            return null;
-                          }
-                        })
-                        .filter(Boolean);
-
-                      return (
-                        <div key={founder.id} className="flex items-start gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                          <Avatar className="h-14 w-14 border-2 border-primary/20">
-                            <AvatarImage src={founder.avatar_url || undefined} />
-                            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                              {founder.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 space-y-1">
-                            <div className="flex items-center gap-3">
-                              <h4 className="font-semibold text-lg">{founder.name}</h4>
-                              <div className="flex items-center gap-2">
-                                {founder.email && (
-                                  <a 
-                                    href={`mailto:${founder.email}`}
-                                    className="text-muted-foreground hover:text-primary transition-colors"
-                                    title="Send email"
-                                  >
-                                    <Mail className="h-4 w-4" />
-                                  </a>
-                                )}
-                                {founder.linkedin_url && (
-                                  <a 
-                                    href={founder.linkedin_url} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="text-muted-foreground hover:text-primary transition-colors"
-                                    title="View LinkedIn"
-                                  >
-                                    <Linkedin className="h-4 w-4" />
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                            {founder.bio && (
-                              <p className="text-sm text-muted-foreground leading-relaxed">{founder.bio}</p>
-                            )}
-                            
-                            {/* Partner Notes for this Founder */}
-                            {founderNotes.length > 0 && (
-                              <div className="mt-3 space-y-2">
-                                <div className="text-xs font-medium text-muted-foreground">Partner Notes:</div>
-                                {founderNotes.map((note, index) => (
-                                  <div key={index} className="p-2 bg-primary/5 rounded text-xs border">
-                                    <div className="font-medium text-primary">{note.lpName}:</div>
-                                    <div className="italic text-muted-foreground">"{note.note}"</div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* 3) Pitch Deck Embed */}
+            {/* Pitch Deck Embed using shared component */}
             {deal.pitch_deck_url && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-primary" />
-                    Pitch Deck
-                  </CardTitle>
-                  <CardDescription>View the presentation directly here or <a href={deal.pitch_deck_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">open in new tab</a></CardDescription>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  {(() => {
-                    // Check if it's a Google Slides/Docs URL that can be embedded
-                    const isGoogleDocs = deal.pitch_deck_url.includes('docs.google.com') || deal.pitch_deck_url.includes('drive.google.com');
-                    const isDropbox = deal.pitch_deck_url.includes('dropbox.com');
-                    const isDocsend = deal.pitch_deck_url.includes('docsend.com');
-                    
-                    // For Google Docs/Slides, try to construct embed URL
-                    let embedUrl = deal.pitch_deck_url;
-                    if (isGoogleDocs) {
-                      // Convert sharing URL to embed URL for Google Slides
-                      if (deal.pitch_deck_url.includes('/presentation/d/')) {
-                        const docId = deal.pitch_deck_url.match(/\/presentation\/d\/([a-zA-Z0-9-_]+)/)?.[1];
-                        if (docId) {
-                          embedUrl = `https://docs.google.com/presentation/d/${docId}/embed?start=false&loop=false&delayms=3000`;
-                        }
-                      } else if (deal.pitch_deck_url.includes('/file/d/')) {
-                        const fileId = deal.pitch_deck_url.match(/\/file\/d\/([a-zA-Z0-9-_]+)/)?.[1];
-                        if (fileId) {
-                          embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
-                        }
-                      }
-                    } else if (isDropbox && deal.pitch_deck_url.includes('dl=0')) {
-                      // Convert Dropbox sharing link to embed
-                      embedUrl = deal.pitch_deck_url.replace('dl=0', 'raw=1');
-                    }
-                    
-                    // Check if it's a PDF or image that can be displayed
-                    const isPDF = deal.pitch_deck_url.toLowerCase().endsWith('.pdf');
-                    const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(deal.pitch_deck_url);
-                    
-                    if (isPDF) {
-                      return (
-                        <div className="w-full h-[600px] overflow-hidden rounded-md border bg-gray-100 dark:bg-gray-900">
-                          <iframe
-                            src={`${deal.pitch_deck_url}#toolbar=0&navpanes=0&scrollbar=0`}
-                            title="Pitch Deck PDF"
-                            className="w-full h-full"
-                            style={{ border: 'none' }}
-                          />
-                        </div>
-                      );
-                    } else if (isImage) {
-                      return (
-                        <div className="w-full overflow-hidden rounded-md border">
-                          <img 
-                            src={deal.pitch_deck_url} 
-                            alt="Pitch Deck" 
-                            className="w-full h-auto"
-                          />
-                        </div>
-                      );
-                    } else if (isDocsend) {
-                      return (
-                        <div className="space-y-4">
-                          <Alert>
-                            <Info className="h-4 w-4" />
-                            <AlertDescription>
-                              <div className="space-y-3">
-                                <p><strong>DocSend Presentation</strong></p>
-                                <p>This presentation is hosted on DocSend and requires email verification to view. It cannot be embedded directly.</p>
-                                <a 
-                                  href={deal.pitch_deck_url} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors font-medium"
-                                >
-                                  <ExternalLink className="h-4 w-4" />
-                                  Open DocSend Presentation
-                                </a>
-                              </div>
-                            </AlertDescription>
-                          </Alert>
-                        </div>
-                      );
-                    } else if (isGoogleDocs) {
-                      return (
-                        <div className="w-full h-[600px] overflow-hidden rounded-md border bg-gray-100 dark:bg-gray-900">
-                          <iframe
-                            src={embedUrl}
-                            title="Pitch Deck"
-                            className="w-full h-full"
-                            frameBorder="0"
-                            allowFullScreen
-                          />
-                        </div>
-                      );
-                    } else {
-                      // Fallback: try to embed any URL in an iframe
-                      return (
-                        <div className="space-y-4">
-                          <Alert>
-                            <Info className="h-4 w-4" />
-                            <AlertDescription>
-                              The pitch deck may not display correctly in embedded view. For the best experience, please open it in a new tab.
-                            </AlertDescription>
-                          </Alert>
-                          <div className="w-full h-[600px] overflow-hidden rounded-md border bg-gray-100 dark:bg-gray-900">
-                            <iframe
-                              src={embedUrl}
-                              title="Pitch Deck"
-                              className="w-full h-full"
-                              frameBorder="0"
-                              sandbox="allow-scripts allow-same-origin allow-popups"
-                            />
-                          </div>
-                        </div>
-                      );
-                    }
-                  })()}
-                </CardContent>
-              </Card>
+              <PitchDeckEmbed pitchDeckUrl={deal.pitch_deck_url} />
             )}
 
-            {/* 4) Product Demo Embed */}
+            {/* Product Demo Embed using shared component */}
             {demoEmbed && (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-                  <CardTitle className="flex items-center gap-2">
-                    <PlayCircle className="h-5 w-5 text-primary" />
-                    Product Demo
-                  </CardTitle>
-                  <CardDescription>Watch the demo directly here</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  {demoEmbed.kind === 'iframe' ? (
-                    <div className="aspect-video w-full overflow-hidden rounded-md border bg-black">
-                      <iframe
-                        src={demoEmbed.src}
-                        title={demoEmbed.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                        className="w-full h-full"
-                      />
-                    </div>
-                  ) : (
-                    <video
-                      src={demoEmbed.src}
-                      controls
-                      className="w-full rounded-md border bg-black"
-                    />
-                  )}
-                </CardContent>
-              </Card>
+              <DemoEmbed demoEmbed={demoEmbed} />
             )}
 
 
@@ -1157,13 +826,17 @@ export default function DealDetailsPage() {
                               <div className="space-y-1">
                                 {vote.comments && (
                                   <div className="text-sm leading-relaxed">
-                                    <span className="italic text-foreground">"{vote.comments}"</span>
+                                    <span className="italic text-foreground">
+                                      "<TextWithLinks>{vote.comments}</TextWithLinks>"
+                                    </span>
                                   </div>
                                 )}
                                 {vote.additional_notes && (
                                   <div className="text-sm leading-relaxed">
                                     <span className="font-medium text-muted-foreground text-xs">Additional: </span>
-                                    <span className="italic text-foreground">"{vote.additional_notes}"</span>
+                                    <span className="italic text-foreground">
+                                      "<TextWithLinks>{vote.additional_notes}</TextWithLinks>"
+                                    </span>
                                   </div>
                                 )}
                               </div>
@@ -1199,11 +872,19 @@ export default function DealDetailsPage() {
       />
       
       {isPartner && deal && (
-        <EditDealDialog 
-          deal={deal}
-          open={isEditDialogOpen} 
-          onOpenChange={setIsEditDialogOpen} 
-        />
+        <>
+          <EditDealDialog 
+            deal={deal}
+            open={isEditDialogOpen} 
+            onOpenChange={setIsEditDialogOpen} 
+          />
+          <ShareDealDialog 
+            dealId={deal.id}
+            dealName={deal.company_name}
+            open={isShareDialogOpen} 
+            onOpenChange={setIsShareDialogOpen} 
+          />
+        </>
       )}
     </div>
   );

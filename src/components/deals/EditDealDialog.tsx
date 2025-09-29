@@ -98,7 +98,7 @@ export function EditDealDialog({ deal, open, onOpenChange }: EditDealDialogProps
     company_name: '',
     company_url: '',
     company_description_short: '',
-    why_good_fit_for_cto_fund: '',
+    why_good_fit: '',
   });
 
   // Founders Information
@@ -239,11 +239,11 @@ export function EditDealDialog({ deal, open, onOpenChange }: EditDealDialogProps
       isEmpty: isFieldEmpty(companyData.company_description_short)
     });
     fields.push({ 
-      fieldName: 'why_good_fit_for_cto_fund', 
+      fieldName: 'why_good_fit', 
       fieldLabel: 'Why is it a fit for Gandhi Capital', 
       tabName: 'Company',
-      currentValue: companyData.why_good_fit_for_cto_fund,
-      isEmpty: isFieldEmpty(companyData.why_good_fit_for_cto_fund)
+      currentValue: companyData.why_good_fit,
+      isEmpty: isFieldEmpty(companyData.why_good_fit)
     });
 
     if (!noPitchDeck) {
@@ -520,8 +520,8 @@ export function EditDealDialog({ deal, open, onOpenChange }: EditDealDialogProps
     if ('company_description_short' in values) {
       setCompanyData(prev => ({ ...prev, company_description_short: String(values.company_description_short) }));
     }
-    if ('why_good_fit_for_cto_fund' in values) {
-      setCompanyData(prev => ({ ...prev, why_good_fit_for_cto_fund: String(values.why_good_fit_for_cto_fund) }));
+    if ('why_good_fit' in values) {
+      setCompanyData(prev => ({ ...prev, why_good_fit: String(values.why_good_fit) }));
     }
     
     // Founders fields
@@ -662,7 +662,7 @@ export function EditDealDialog({ deal, open, onOpenChange }: EditDealDialogProps
           companyData.company_name, 
           companyData.company_url, 
           companyData.company_description_short,
-          companyData.why_good_fit_for_cto_fund
+          companyData.why_good_fit
         ];
         if (!noPitchDeck) {
           companyFields.push(otherData.pitch_deck_url);
@@ -702,7 +702,7 @@ export function EditDealDialog({ deal, open, onOpenChange }: EditDealDialogProps
         company_name: deal.company_name || '',
         company_url: deal.company_url || '',
         company_description_short: deal.company_description_short || '',
-        why_good_fit_for_cto_fund: deal.why_good_fit_for_cto_fund || '',
+        why_good_fit: deal.why_good_fit || '',
       });
 
       // Founders data
@@ -868,7 +868,7 @@ export function EditDealDialog({ deal, open, onOpenChange }: EditDealDialogProps
         company_name: companyData.company_name || undefined,
         company_url: companyData.company_url || undefined,
         company_description_short: companyData.company_description_short || undefined,
-        why_good_fit_for_cto_fund: companyData.why_good_fit_for_cto_fund || undefined,
+        why_good_fit: companyData.why_good_fit || undefined,
         
         // Founders data
         founders_location: foundersData.founders_location || undefined,
@@ -1064,22 +1064,22 @@ export function EditDealDialog({ deal, open, onOpenChange }: EditDealDialogProps
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="why_good_fit_for_cto_fund">
+                    <Label htmlFor="why_good_fit">
                       Why is it a fit for Gandhi Capital
-                      {showEmptyIndicators && isFieldEmpty(companyData.why_good_fit_for_cto_fund) && (
+                      {showEmptyIndicators && isFieldEmpty(companyData.why_good_fit) && (
                         <span className="text-red-500 ml-1">*</span>
                       )}
                     </Label>
                     <Textarea
-                      id="why_good_fit_for_cto_fund"
-                      value={companyData.why_good_fit_for_cto_fund}
-                      onChange={(e) => setCompanyData({ ...companyData, why_good_fit_for_cto_fund: e.target.value })}
-                      className={getFieldClassName(companyData.why_good_fit_for_cto_fund)}
+                      id="why_good_fit"
+                      value={companyData.why_good_fit}
+                      onChange={(e) => setCompanyData({ ...companyData, why_good_fit: e.target.value })}
+                      className={getFieldClassName(companyData.why_good_fit)}
                       rows={4}
                       placeholder="Why would this be a good fit for Gandhi Capital specifically?"
                     />
                     <p className="text-sm text-muted-foreground">
-                      {(companyData.why_good_fit_for_cto_fund || '').length} characters
+                      {(companyData.why_good_fit || '').length} characters
                     </p>
                   </div>
 
