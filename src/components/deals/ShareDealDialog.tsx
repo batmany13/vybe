@@ -24,11 +24,14 @@ import {
   Users,
   Clock,
   Shield,
-  AlertTriangle
+  AlertTriangle,
+  FileText,
+  Sparkles
 } from "lucide-react";
 import { toast } from 'sonner';
 import { useSelectedLP } from '@/contexts/SelectedLPContext';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { DealSummaryDialog } from './DealSummaryDialog';
 
 interface ShareLink {
   id: string;
@@ -44,16 +47,18 @@ interface ShareLink {
 interface ShareDealDialogProps {
   dealId: string;
   dealName: string;
+  deal?: any; // Optional deal object for summary generation
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function ShareDealDialog({ dealId, dealName, open, onOpenChange }: ShareDealDialogProps) {
+export function ShareDealDialog({ dealId, dealName, deal, open, onOpenChange }: ShareDealDialogProps) {
   const [shares, setShares] = useState<ShareLink[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [expiresInDays, setExpiresInDays] = useState('30');
+  const [showSummaryDialog, setShowSummaryDialog] = useState(false);
   
   const { selectedLP } = useSelectedLP();
 
@@ -177,6 +182,35 @@ export function ShareDealDialog({ dealId, dealName, open, onOpenChange }: ShareD
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Deal Summary Feature */}
+          {deal && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Sparkles className="h-5 w-5 text-purple-600" />
+                  Deal Summary & Export
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Alert>
+                  <FileText className="h-4 w-4" />
+                  <AlertDescription>
+                    Generate AI-powered executive summaries, export as PDF, or send via email to co-investors and stakeholders.
+                  </AlertDescription>
+                </Alert>
+                
+                <Button 
+                  onClick={() => setShowSummaryDialog(true)}
+                  className="w-full md:w-auto"
+                  variant="default"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Create Deal Summary
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Create New Share Link */}
           <Card>
             <CardHeader>
@@ -351,6 +385,15 @@ export function ShareDealDialog({ dealId, dealName, open, onOpenChange }: ShareD
           </Card>
         </div>
       </DialogContent>
+      
+      {/* Deal Summary Dialog */}
+      {deal && (
+        <DealSummaryDialog
+          deal={deal}
+          open={showSummaryDialog}
+          onOpenChange={setShowSummaryDialog}
+        />
+      )}
     </Dialog>
   );
 }

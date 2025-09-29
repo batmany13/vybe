@@ -83,6 +83,13 @@ To change the admin password:
 - **Export Functionality**: CSV exports for portfolio and LP data
 - **Responsive Design**: Mobile-friendly admin interface
 
+### Deal Summary & Sharing Features
+- **AI-Generated Summaries**: Create professional executive-level investment summaries using GenAI
+- **PDF Export**: Generate beautifully formatted PDF reports with company details and analysis
+- **Email Integration**: Send summaries directly to co-investors and stakeholders via Gmail integration
+- **Customizable Templates**: Edit AI-generated content and customize summaries before sharing
+- **Professional Formatting**: Clean, professional layout suitable for institutional investors
+
 ### Recent Updates
 - **Field Generalization**: Renamed database fields and UI references for better generalization:
   - `quang_excited_note` → `excitement_note` 
@@ -91,6 +98,7 @@ To change the admin password:
 - **Code Refactoring**: Created shared components for deal displays to reduce code duplication between public and private views
 - **Admin Authentication Enhancement**: Added role-based access where General Partners and Venture Partners get automatic admin access without requiring a password
 - **Public Deal Sharing Fix**: Fixed issue where public deal sharing pages were inaccessible in private browsing mode or for non-authenticated users by optimizing the authentication context for public routes
+- **AI-Powered Deal Summaries**: Added comprehensive deal summary generation with GenAI integration, PDF export, and email sharing capabilities for stakeholder communication
 
 ## Architecture and Technical Decisions
 

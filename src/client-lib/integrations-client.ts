@@ -25,9 +25,7 @@ import {
   type LinearProject,
   type LinearTeam,
   type LinearUser,
-  type GithubRepository,
-  type GithubPullRequest,
-  type GithubCommit,
+
   type PostHogQLQueryInput,
   type PostHogProject,
   type NotionContent,
@@ -331,26 +329,7 @@ export function useLinearUsers() {
   return useSWR<LinearUser[]>("/integrations/linear/users", fetcher);
 }
 
-export function useGithubRepositories() {
-  if (showFakeData) {
-    return useSWR<GithubRepository[]>("/integrations/github/repositories", emptyArray);
-  }
-  return useSWR<GithubRepository[]>("/integrations/github/repositories", fetcher);
-}
 
-export function useGithubPullRequests(ownerLogin: string, repoName: string) {
-  if (showFakeData) {
-    return useSWR<GithubPullRequest[]>(`/integrations/github/pull-requests?owner=${ownerLogin}&repo=${repoName}`, emptyArray);
-  }
-  return useSWR<GithubPullRequest[]>(`/integrations/github/pull-requests?owner=${ownerLogin}&repo=${repoName}`, fetcher);
-}
-
-export function useGithubCommits(ownerLogin: string, repoName: string) {
-  if (showFakeData) {
-    return useSWR<GithubCommit[]>(`/integrations/github/commits?owner=${ownerLogin}&repo=${repoName}`, emptyArray);
-  }
-  return useSWR<GithubCommit[]>(`/integrations/github/commits?owner=${ownerLogin}&repo=${repoName}`, fetcher);
-}
 
 export async function sendPostHogQlQuery(query: PostHogQLQueryInput) {
   if (showFakeData) {

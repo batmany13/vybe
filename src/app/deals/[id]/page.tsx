@@ -51,7 +51,7 @@ import {
   Linkedin,
   CalendarCheck,
   Edit,
-  Share
+
 } from 'lucide-react';
 import { useDeal, useLimitedPartners, updateDeal, useDealLinks } from '@/client-lib/api-client';
 
@@ -59,7 +59,8 @@ import { VotingDialog } from '@/components/voting/VotingDialog';
 import { SurveyReportButton } from '@/components/deals/SurveyReportButton';
 import { FounderMeetingIndicator } from '@/components/deals/FounderMeetingIndicator';
 import { EditDealDialog } from '@/components/deals/EditDealDialog';
-import { ShareDealDialog } from '@/components/deals/ShareDealDialog';
+
+import { DealSummaryDialog } from '@/components/deals/DealSummaryDialog';
 import { 
   CompanyDetailsSection, 
   FoundingTeamSection, 
@@ -81,7 +82,8 @@ export default function DealDetailsPage() {
 
   const [isVotingDialogOpen, setIsVotingDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+
+  const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
 
   const { data: deal, isLoading, error } = useDeal(dealId);
   const { data: lps = [] } = useLimitedPartners();
@@ -383,12 +385,12 @@ export default function DealDetailsPage() {
                     Edit Deal
                   </Button>
                   <Button 
-                    onClick={() => setIsShareDialogOpen(true)} 
+                    onClick={() => setIsSummaryDialogOpen(true)} 
                     className="shadow-lg"
-                    variant="outline"
+                    variant="secondary"
                   >
-                    <Share className="h-4 w-4 mr-2" />
-                    Share Deal
+                    <FileText className="h-4 w-4 mr-2" />
+                    Summary
                   </Button>
                 </>
               )}
@@ -468,13 +470,13 @@ export default function DealDetailsPage() {
                 Edit Deal
               </Button>
               <Button 
-                onClick={() => setIsShareDialogOpen(true)} 
+                onClick={() => setIsSummaryDialogOpen(true)} 
                 className="w-full shadow-lg" 
                 size="lg"
-                variant="outline"
+                variant="secondary"
               >
-                <Share className="h-5 w-5 mr-2" />
-                Share Deal
+                <FileText className="h-5 w-5 mr-2" />
+                Create Summary
               </Button>
             </>
           )}
@@ -878,11 +880,11 @@ export default function DealDetailsPage() {
             open={isEditDialogOpen} 
             onOpenChange={setIsEditDialogOpen} 
           />
-          <ShareDealDialog 
-            dealId={deal.id}
-            dealName={deal.company_name}
-            open={isShareDialogOpen} 
-            onOpenChange={setIsShareDialogOpen} 
+
+          <DealSummaryDialog 
+            deal={deal}
+            open={isSummaryDialogOpen} 
+            onOpenChange={setIsSummaryDialogOpen} 
           />
         </>
       )}
